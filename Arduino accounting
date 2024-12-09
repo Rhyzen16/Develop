@@ -1,0 +1,224 @@
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+#include <Keypad.h>
+
+// LCD Setup (Assuming 16x2 LCD)
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+// Keypad Setup
+const byte ROW_NUM    = 4; 
+const byte COLUMN_NUM = 4; 
+char keys[ROW_NUM][COLUMN_NUM] = {
+  {'1', '2', '3', 'A'},
+  {'4', '5', '6', 'B'},
+  {'7', '8', '9', 'C'},
+  {'0', '+', '-', '#'}
+};
+
+byte pin_rows[ROW_NUM] = {9, 8, 7, 6};  // Rows connected to pins 9, 8, 7, 6
+byte pin_column[COLUMN_NUM] = {5, 4, 3, 2};  // Columns connected to pins 5, 4, 3, 2
+
+Keypad keypad = Keypad(makeKeymap(keys), pin_rows, pin_column, ROW_NUM, COLUMN_NUM);
+
+// Account Information (max 4 accounts, each with a combination)
+struct Account {
+  String combination;
+  float balance;
+};
+
+Account accounts[4] = {
+  {"123A", 0},
+  {"456B", 0},
+  {"789C", 0},
+  {"0000", 0}  // Default account
+};
+
+// Variables
+String enteredCombination = "";
+float currentBalance = 0;
+bool accountOpen = false;
+bool secretCodeEntered = false;
+
+void setup() {
+  lcd.begin();
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Enter Combination");
+  delay(1000);
+}
+
+void loop() {
+  if (!accountOpen) {
+    checkCombination();
+  } else {
+    handleBalanceFunctions();
+  }
+}
+
+void checkCombination() {
+  char key = keypad.getKey();
+  
+  if (key) {
+    if (key == '#') {
+      // Validate the entered combination
+      if (enteredCombination == "") {
+        return;
+      }
+      bool valid = false;
+      for (int i = 0; i < 4; i++) {
+        if (accounts[i].combination == enteredCombination) {
+          valid = true;
+          currentBalance = accounts[i].balance;
+          accountOpen = true;
+          lcd.clear();
+          lcd.setCursor(0, 0);
+          lcd.print("Account Opened");
+          delay(1000);
+          lcd.clear();
+          lcd.setCursor(0, 0);
+          lcd.print("Balance: ");
+          lcd.print(currentBalance);
+          break;
+        }
+      }
+      if (!valid) {
+        lcd.clear();
+        lcd.setCursor(0, 0);
+        lcd.print("Invalid Combination!");
+        delay(1000);
+        lcd.clear();
+        lcd.setCursor(0, 0);
+        lcd.print("Enter Combination");
+        enteredCombination = "";  // Reset entry
+      }
+    } else {
+      // Append key to the combination
+      enteredCombination += key;
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Enter: ");
+      lcd.print(enteredCombination);
+    }
+  }
+}
+
+void handleBalanceFunctions() {
+  char key = keypad.getKey();
+  
+  if (key) {
+    if (key == '+') {
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Enter Amount to Add");
+      enteredCombination = "";
+      while (true) {
+        char key = keypad.getKey();
+        if (key) {
+          if (key == '#') {
+            if (enteredCombination != "") {
+              float amount = enteredCombination.toFloat();
+              currentBalance += amount;
+              accounts[getAccountIndex()].balance = currentBalance;
+              lcd.clear();
+              lcd.setCursor(0, 0);
+              lcd.print("Balance Updated");
+              lcd.setCursor(0, 1);
+              lcd.print("New Balance: ");
+              lcd.print(currentBalance);
+              delay(1000);
+              break;
+            }
+          } else {
+            enteredCombination += key;
+            lcd.setCursor(0, 1);
+            lcd.print("Amount: ");
+            lcd.print(enteredCombination);
+          }
+        }
+      }
+    } else if (key == '-') {
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Enter Amount to Subtract");
+      enteredCombination = "";
+      while (true) {
+        char key = keypad.getKey();
+        if (key) {
+          if (key == '#') {
+            if (enteredCombination != "") {
+              float amount = enteredCombination.toFloat();
+              currentBalance -= amount;
+              accounts[getAccountIndex()].balance = currentBalance;
+              lcd.clear();
+              lcd.setCursor(0, 0);
+              lcd.print("Balance Updated");
+              lcd.setCursor(0, 1);
+              lcd.print("New Balance: ");
+              lcd.print(currentBalance);
+              delay(1000);
+              break;
+            }
+          } else {
+            enteredCombination += key;
+            lcd.setCursor(0, 1);
+            lcd.print("Amount: ");
+            lcd.print(enteredCombination);
+          }
+        }
+      }
+    } else if (key == '#') {
+      // Exit Account
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Exiting Account...");
+      delay(1000);
+      accountOpen = false;
+      enteredCombination = "";
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Enter Combination");
+    } else if (key == 'A') {
+      // Check for Secret Code
+      secretCodeEntered = checkSecretCode();
+      if (secretCodeEntered) {
+        lcd.clear();
+        lcd.setCursor(0, 0);
+        lcd.print("Location: Pulilan");
+        lcd.setCursor(0, 1);
+        lcd.print("Bulacan, HouseBookshelf");
+        delay(2000);
+        secretCodeEntered = false;
+      }
+    }
+  }
+}
+
+bool checkSecretCode() {
+  String enteredSecretCode = "";
+  while (true) {
+    char key = keypad.getKey();
+    if (key) {
+      enteredSecretCode += key;
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Code: ");
+      lcd.print(enteredSecretCode);
+      if (enteredSecretCode == "1A3B") {
+        return true;
+      }
+      if (enteredSecretCode.length() > 4) {
+        break;
+      }
+    }
+  }
+  return false;
+}
+
+int getAccountIndex() {
+  for (int i = 0; i < 4; i++) {
+    if (accounts[i].combination == enteredCombination) {
+      return i;
+    }
+  }
+  return -1;
+}
