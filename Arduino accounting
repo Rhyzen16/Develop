@@ -37,6 +37,7 @@ Account accounts[4] = {
 String enteredCombination = "";
 float currentBalance = 0;
 bool accountOpen = false;
+String enteredSecretCode = "";
 
 void setup() {
   lcd.begin();
@@ -157,6 +158,41 @@ void handleBalanceFunctions() {
             lcd.setCursor(0, 1);
             lcd.print("Amount: ");
             lcd.print(enteredCombination);
+          }
+        }
+      }
+    } else if (key == 'A') {
+      // Check for Secret Code
+      enteredSecretCode = "";
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Enter Secret Code");
+      while (true) {
+        char secretKey = keypad.getKey();
+        if (secretKey) {
+          enteredSecretCode += secretKey;
+          lcd.setCursor(0, 1);
+          lcd.print("Code: ");
+          lcd.print(enteredSecretCode);
+
+          // Check if the secret code matches
+          if (enteredSecretCode == "1A3B") {
+            lcd.clear();
+            lcd.setCursor(0, 0);
+            lcd.print("Location: Pulilan");
+            lcd.setCursor(0, 1);
+            lcd.print("Bulacan, HouseBookshelf");
+            delay(2000);
+            enteredSecretCode = "";  // Reset the code entry
+            break;
+          } else if (enteredSecretCode.length() > 4) {
+            // Reset if the code is longer than 4 characters
+            enteredSecretCode = "";
+            lcd.clear();
+            lcd.setCursor(0, 0);
+            lcd.print("Invalid Code");
+            delay(1000);
+            break;
           }
         }
       }
