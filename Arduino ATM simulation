@@ -1,0 +1,172 @@
+void handleBalanceFunctions() {
+  char key = keypad.getKey();
+  
+  if (key) {
+    if (key == '#') {
+      // Go back to main menu if '#' is pressed
+      goBackToMenu();
+    } else if (key == '+') {
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Enter Amount to Add");
+      enteredCombination = "";
+      while (true) {
+        char key = keypad.getKey();
+        if (key) {
+          if (key == '#') {
+            // Go back to main menu if '#' is pressed
+            goBackToMenu();
+            break;
+          } else {
+            enteredCombination += key;
+            lcd.setCursor(0, 1);
+            lcd.print("Amount: ");
+            lcd.print(enteredCombination);
+          }
+        }
+      }
+
+      // Confirm transaction
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Confirm Add?");
+      lcd.setCursor(0, 1);
+      lcd.print("A: Yes  B: No");
+
+      while (true) {
+        char key = keypad.getKey();
+        if (key) {
+          if (key == 'A') {
+            // Confirm the addition
+            float amountToAdd = enteredCombination.toFloat();
+            currentBalance += amountToAdd;
+            lcd.clear();
+            lcd.setCursor(0, 0);
+            lcd.print("Amount Added");
+            lcd.setCursor(0, 1);
+            lcd.print("Balance: ");
+            lcd.print(currentBalance);
+            delay(2000);  // Show confirmation for 2 seconds
+            goBackToMenu();  // Return to the main menu
+            break;
+          } else if (key == 'B') {
+            // Cancel the addition and return to the main menu
+            lcd.clear();
+            lcd.setCursor(0, 0);
+            lcd.print("Addition Cancelled");
+            delay(1000);
+            goBackToMenu();  // Return to the main menu
+            break;
+          }
+        }
+      }
+    } else if (key == '-') {
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Enter Amount to Subtract");
+      enteredCombination = "";
+      while (true) {
+        char key = keypad.getKey();
+        if (key) {
+          if (key == '#') {
+            // Go back to main menu if '#' is pressed
+            goBackToMenu();
+            break;
+          } else {
+            enteredCombination += key;
+            lcd.setCursor(0, 1);
+            lcd.print("Amount: ");
+            lcd.print(enteredCombination);
+          }
+        }
+      }
+
+      // Confirm transaction
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Confirm Subtract?");
+      lcd.setCursor(0, 1);
+      lcd.print("A: Yes  B: No");
+
+      while (true) {
+        char key = keypad.getKey();
+        if (key) {
+          if (key == 'A') {
+            // Confirm the subtraction
+            float amountToSubtract = enteredCombination.toFloat();
+            if (currentBalance >= amountToSubtract) {
+              currentBalance -= amountToSubtract;
+              lcd.clear();
+              lcd.setCursor(0, 0);
+              lcd.print("Amount Subtracted");
+              lcd.setCursor(0, 1);
+              lcd.print("Balance: ");
+              lcd.print(currentBalance);
+              delay(2000);  // Show confirmation for 2 seconds
+              goBackToMenu();  // Return to the main menu
+              break;
+            } else {
+              // If balance is insufficient
+              lcd.clear();
+              lcd.setCursor(0, 0);
+              lcd.print("Insufficient Funds");
+              delay(1000);
+              goBackToMenu();  // Return to the main menu
+              break;
+            }
+          } else if (key == 'B') {
+            // Cancel the subtraction and return to the main menu
+            lcd.clear();
+            lcd.setCursor(0, 0);
+            lcd.print("Subtraction Cancelled");
+            delay(1000);
+            goBackToMenu();  // Return to the main menu
+            break;
+          }
+        }
+      }
+    } else if (key == 'A') {
+      // Secret code functionality
+      enteredSecretCode = "";
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Enter Secret Code");
+      while (true) {
+        char secretKey = keypad.getKey();
+        if (secretKey) {
+          if (secretKey == '#') {
+            // Go back to menu if '#' is pressed
+            goBackToMenu();
+            break;
+          } else {
+            enteredSecretCode += secretKey;
+            lcd.setCursor(0, 1);
+            lcd.print("Code: ");
+            lcd.print(enteredSecretCode);
+          }
+
+          // Check if the secret code matches
+          if (enteredSecretCode == "1A3B") {
+            lcd.clear();
+            lcd.setCursor(0, 0);
+            lcd.print("Location: HouseBookshelf");
+            lcd.setCursor(0, 1);
+            lcd.print("Pulilan, Bulacan");
+            delay(2000);  // Show the secret location for 2 seconds
+            enteredSecretCode = "";  // Reset the code entry
+            goBackToMenu();  // Return to the main menu
+            break;
+          } else if (enteredSecretCode.length() > 4) {
+            // Reset if the code is longer than 4 characters
+            enteredSecretCode = "";
+            lcd.clear();
+            lcd.setCursor(0, 0);
+            lcd.print("Invalid Code");
+            delay(1000);
+            break;
+          }
+        }
+      }
+    }
+  }
+}
