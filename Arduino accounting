@@ -179,9 +179,9 @@ void handleBalanceFunctions() {
           if (enteredSecretCode == "1A3B") {
             lcd.clear();
             lcd.setCursor(0, 0);
-            lcd.print("Location: Pulilan");
+            lcd.print("Location: HouseBookshelf");
             lcd.setCursor(0, 1);
-            lcd.print("Bulacan, HouseBookshelf");
+            lcd.print("Pulilan, Bulacan");
             delay(2000);
             enteredSecretCode = "";  // Reset the code entry
             break;
